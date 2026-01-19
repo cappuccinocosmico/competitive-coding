@@ -81,12 +81,32 @@ fn convolve_main_array(input: &Array2<f64>) -> Array2<f64> {
     result.unwrap()
 }
 
-fn sum_up_accessible_boxes_in_convolved_array(input: &Array2<f64>) -> u64 {
-    fn is_box_accessible(xref: &f64) -> u64 {
-        // Giving 0.5 room on each bound to help deal with floating point weirdness from the fft.
-        if (15.5..=19.5).contains(xref) { 1 } else { 0 }
+fn is_box_accessible(xref: &f64) -> u64 {
+    // Giving 0.5 room on each bound to help deal with floating point weirdness from the fft.
+    if (15.5..=19.5).contains(xref) { 1 } else { 0 }
+}
+fn sum_up_accessible_boxes_in_convolved_array(input_convolved: &Array2<f64>) -> u64 {
+    input_convolved.iter().map(is_box_accessible).sum()
+}
+fn count_boxes_in_array(input_raw: &Array2<f64>) -> u64 {
+    input_raw
+        .iter()
+        .map(|val| if *val >= 0.5 { 1 } else { 0 })
+        .sum()
+}
+fn sum_up_and_remove_boxes_from_arrays(original: &mut Array2<f64>, convolved: &Array2<f64>) -> u64 {
+    fn remove_box_if_accessible(orig: &mut f64, conv: &f64) -> u64 {
+        let accessible = is_box_accessible(conv);
+        if accessible == 1 {
+            *orig = 0.0;
+        }
+        accessible
     }
-    input.iter().map(is_box_accessible).sum()
+    original
+        .iter_mut()
+        .zip(convolved.iter())
+        .map(|(orig, conv)| remove_box_if_accessible(orig, conv))
+        .sum()
 }
 
 fn problem1() -> u64 {
@@ -95,9 +115,19 @@ fn problem1() -> u64 {
     let convolved = convolve_main_array(&arr);
     sum_up_accessible_boxes_in_convolved_array(&convolved)
 }
-
+fn problem2() -> u64 {
+    // Input is rather big and is declared as a const later on.
+    let mut main_array = parse_box_inputs(INPUT);
+    let mut removed_boxes = 1; // just to get it started
+    while removed_boxes != 0 {
+        let convolved = convolve_main_array(&main_array);
+        removed_boxes = sum_up_and_remove_boxes_from_arrays(&mut main_array, &convolved);
+    }
+    count_boxes_in_array(&main_array)
+}
 fn main() {
-    println!("Problem 1 Result : {}", problem1())
+    println!("Problem 1 Result : {}", problem1());
+    println!("Problem 2 Result : {}", problem2());
 }
 
 const INPUT : &str = ".@@@.@@@@@.@@.@@@@.@@@@.@@@@..@@@@.@@@...@@@@.@.@@.@@@.@@@@@@@@@...@.@@@@@@..@..@@@.@@@.@@.@@@@@@.@@@@.@..@@@@@.@@@....@@@@@@..@.@@.@.@@@
