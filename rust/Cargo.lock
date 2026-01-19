@@ -18,6 +18,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "competitive-coding"
+version = "0.1.0"
+dependencies = [
+ "ndarray",
+ "ndarray-conv",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -47,14 +55,6 @@ name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
-
-[[package]]
-name = "leetcode"
-version = "0.1.0"
-dependencies = [
- "ndarray",
- "ndarray-conv",
-]
 
 [[package]]
 name = "matrixmultiply"
