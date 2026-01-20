@@ -88,12 +88,12 @@ fn is_box_accessible(xref: &f64) -> u64 {
 fn sum_up_accessible_boxes_in_convolved_array(input_convolved: &Array2<f64>) -> u64 {
     input_convolved.iter().map(is_box_accessible).sum()
 }
-fn count_boxes_in_array(input_raw: &Array2<f64>) -> u64 {
-    input_raw
-        .iter()
-        .map(|val| if *val >= 0.5 { 1 } else { 0 })
-        .sum()
-}
+// fn count_boxes_in_array(input_raw: &Array2<f64>) -> u64 {
+//     input_raw
+//         .iter()
+//         .map(|val| if *val >= 0.5 { 1 } else { 0 })
+//         .sum()
+// }
 fn sum_up_and_remove_boxes_from_arrays(original: &mut Array2<f64>, convolved: &Array2<f64>) -> u64 {
     fn remove_box_if_accessible(orig: &mut f64, conv: &f64) -> u64 {
         let accessible = is_box_accessible(conv);
@@ -118,12 +118,14 @@ fn problem1() -> u64 {
 fn problem2() -> u64 {
     // Input is rather big and is declared as a const later on.
     let mut main_array = parse_box_inputs(INPUT);
-    let mut removed_boxes = 1; // just to get it started
-    while removed_boxes != 0 {
+    let mut removed_boxes_single = 1; // just to get it started
+    let mut removed_boxes_total = 0;
+    while removed_boxes_single != 0 {
         let convolved = convolve_main_array(&main_array);
-        removed_boxes = sum_up_and_remove_boxes_from_arrays(&mut main_array, &convolved);
+        removed_boxes_single = sum_up_and_remove_boxes_from_arrays(&mut main_array, &convolved);
+        removed_boxes_total += removed_boxes_single;
     }
-    count_boxes_in_array(&main_array)
+    removed_boxes_total
 }
 fn main() {
     println!("Problem 1 Result : {}", problem1());
