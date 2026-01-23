@@ -48,6 +48,14 @@ impl IdRange {
             None
         }
     }
+    // fn sum_all_values_in_range(&self) -> u64 {
+    //     // Yay science
+    //     ((self.lower + self.upper) * (self.upper + 1 - self.lower)) / 2
+    // }
+    fn count_all_values_in_range(&self) -> u64 {
+        // Yay science
+        self.upper + 1 - self.lower
+    }
 }
 
 struct OrderedIntervalSet(BTreeMap<u64, IdRange>);
@@ -55,6 +63,9 @@ struct OrderedIntervalSet(BTreeMap<u64, IdRange>);
 impl OrderedIntervalSet {
     const fn new() -> Self {
         OrderedIntervalSet(BTreeMap::new())
+    }
+    const fn get_underlying_map(&self) -> &BTreeMap<u64, IdRange> {
+        &self.0
     }
     fn insert_interval(&mut self, interval: IdRange) {
         let tree = &mut self.0;
@@ -133,6 +144,17 @@ fn run_task_1(raw: &str) -> u64 {
         .map(|num| interval_set.is_item_in(&num) as u64)
         .sum()
 }
+
+fn run_task_2(raw: &str) -> u64 {
+    let (intervals, _) = parse_inputs(raw);
+    let interval_set = OrderedIntervalSet::from_interval_iterator(intervals);
+    let count_all_values = interval_set
+        .get_underlying_map()
+        .iter()
+        .map(|x| x.1.count_all_values_in_range())
+        .sum();
+    count_all_values
+}
 //     Ingredient ID 1 is spoiled because it does not fall into any range.
 //     Ingredient ID 5 is fresh because it falls into range 3-5.
 //     Ingredient ID 8 is spoiled.
@@ -149,9 +171,15 @@ fn run_example_task_1() {
     assert!(fresh_set.is_item_in(&17));
     assert!(!fresh_set.is_item_in(&32));
 }
+fn run_example_task_2() {
+    let example_val = run_task_2(EXAMPLE_INPUT);
+    assert_eq!(example_val, 14)
+}
 
 fn main() {
     run_example_task_1();
+    run_example_task_2();
     // 591 low.
-    println!("Output 1:{}", run_task_1(ADVENT_INPUT_DAY_5))
+    println!("Output 1:{}", run_task_1(ADVENT_INPUT_DAY_5));
+    println!("Output 2:{}", run_task_2(ADVENT_INPUT_DAY_5))
 }
