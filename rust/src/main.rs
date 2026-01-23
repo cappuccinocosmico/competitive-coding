@@ -1,3 +1,4 @@
+pub mod inputs;
 mod leetcode;
 
 fn main() {
