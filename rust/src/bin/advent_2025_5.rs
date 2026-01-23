@@ -62,7 +62,7 @@ impl OrderedIntervalSet {
             .range(interval.lower..=interval.upper)
             .map(|x| *x.0)
             .collect::<Vec<_>>();
-        let upper_bound = lower_interval_values_to_get_replaced
+        let mut upper_bound = lower_interval_values_to_get_replaced
             .into_iter()
             .map(|val| {
                 tree.remove(&val)
@@ -80,8 +80,10 @@ impl OrderedIntervalSet {
         });
         let lower_bound = low_key_optional
             .and_then(|low_key| {
-                tree.remove(&low_key)
-                    .map(|val| val.lower.min(interval.lower))
+                tree.remove(&low_key).map(|val| {
+                    upper_bound = upper_bound.max(val.upper);
+                    val.lower.min(interval.lower)
+                })
             })
             .unwrap_or(interval.lower);
         let new_interval = IdRange {
