@@ -1,4 +1,4 @@
-use std::{borrow::Cow, num::ParseIntError, ops::Deref};
+use std::ops::Deref;
 
 use competitive_coding::inputs::ADVENT_INPUT_DAY_6;
 
@@ -46,7 +46,7 @@ impl HomeworkProblem {
         let return_numbers = try_collect(numbers_iter);
         return_numbers
             .map(|numbers| HomeworkProblem { operation, numbers })
-            .map_err(|e| "Integer could not be parsed")
+            .map_err(|_| "Integer could not be parsed")
     }
 }
 
@@ -89,29 +89,46 @@ fn parse_problem_1_form(raw: &str) -> Vec<Vec<&str>> {
 
 fn parse_problem_2_form(raw: &str) -> Vec<Vec<String>> {
     let mut lines_vec: Vec<_> = raw.lines().collect();
-    let operations_row = lines_vec.pop().unwrap().split_whitespace();
-    let iters_mut: Vec<_> = lines_vec.into_iter().map(|v| v.chars()).collect();
+    let mut operations_row = lines_vec.pop().unwrap().split_whitespace();
+    let mut iters_mut: Vec<_> = lines_vec.into_iter().map(|v| v.chars()).collect();
     let mut outputs = Vec::new();
+    let mut working_output = Vec::new();
     loop {
-        let chars = iters_mut.iter_mut().map(|val| c);
-        break;
+        let chars_iter = iters_mut
+            .iter_mut()
+            .map(|val| val.next().ok_or("values ran out"));
+        let Ok(chars) = try_collect(chars_iter) else {
+            break;
+        };
+        let out_string: String = chars.into_iter().filter(|x| !x.is_whitespace()).collect();
+        if out_string.is_empty() {
+            working_output.push(operations_row.next().unwrap().to_string());
+            let append_vec = std::mem::take(&mut working_output);
+            outputs.push(append_vec);
+        } else {
+            working_output.push(out_string);
+        }
     }
     outputs
 }
 
 fn execute_task_1(input: &str) -> i64 {
     let parsed_out_lines = parse_problem_1_form(input);
-    let parsed_problems_iter = parsed_out_lines.into_iter().map(|instructs| {
-        HomeworkProblem::parse(&instructs).ok_or("this should parse successfully")
-    });
+    let parsed_problems_iter = parsed_out_lines
+        .into_iter()
+        .map(|instructs| HomeworkProblem::parse(&instructs));
     let problems = try_collect(parsed_problems_iter).unwrap();
-    let result = problems
-        .iter()
-        .map(|prob| prob.execute())
-        .fold(0, |a, b| a + b);
-    result
+    problems.iter().map(|prob| prob.execute()).sum()
 }
 
+fn execute_task_2(input: &str) -> i64 {
+    let parsed_out_lines = parse_problem_2_form(input);
+    let parsed_problems_iter = parsed_out_lines
+        .into_iter()
+        .map(|instructs| HomeworkProblem::parse(&instructs));
+    let problems = try_collect(parsed_problems_iter).unwrap();
+    problems.iter().map(|prob| prob.execute()).sum()
+}
 pub const EXAMPLE_INPUT: &str = "123 328  51 64 
  45 64  387 23 
   6 98  215 314
@@ -120,4 +137,6 @@ pub const EXAMPLE_INPUT: &str = "123 328  51 64
 fn main() {
     assert_eq!(execute_task_1(EXAMPLE_INPUT), 4277556);
     println!("Output 1: {}", execute_task_1(ADVENT_INPUT_DAY_6));
+    assert_eq!(execute_task_2(EXAMPLE_INPUT), 3263827);
+    println!("Output 2: {}", execute_task_2(ADVENT_INPUT_DAY_6));
 }
