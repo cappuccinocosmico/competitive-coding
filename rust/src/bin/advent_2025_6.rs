@@ -93,20 +93,24 @@ fn parse_problem_2_form(raw: &str) -> Vec<Vec<String>> {
     let mut iters_mut: Vec<_> = lines_vec.into_iter().map(|v| v.chars()).collect();
     let mut outputs = Vec::new();
     let mut working_output = Vec::new();
-    loop {
-        let chars_iter = iters_mut
+    let mut empty_rows_seen_previously = 0;
+    while empty_rows_seen_previously <= 10 {
+        let row_string: String = iters_mut
             .iter_mut()
-            .map(|val| val.next().ok_or("values ran out"));
-        let Ok(chars) = try_collect(chars_iter) else {
-            break;
-        };
-        let out_string: String = chars.into_iter().filter(|x| !x.is_whitespace()).collect();
-        if out_string.is_empty() {
-            working_output.push(operations_row.next().unwrap().to_string());
-            let append_vec = std::mem::take(&mut working_output);
-            outputs.push(append_vec);
+            .filter_map(|val| val.next())
+            .filter(|char| !char.is_whitespace())
+            .collect();
+        // dbg!(&row_string);
+        if row_string.is_empty() {
+            if empty_rows_seen_previously == 0 {
+                working_output.push(operations_row.next().unwrap_or_default().to_string());
+                let append_vec = std::mem::take(&mut working_output);
+                outputs.push(append_vec);
+            }
+            empty_rows_seen_previously += 1;
         } else {
-            working_output.push(out_string);
+            empty_rows_seen_previously = 0;
+            working_output.push(row_string);
         }
     }
     outputs
