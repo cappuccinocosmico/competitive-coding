@@ -1,4 +1,54 @@
-struct InstructionLists<'a>(Vec<Vec<&'a str>>);
+use std::{borrow::Cow, num::ParseIntError, ops::Deref};
+
+use competitive_coding::inputs::ADVENT_INPUT_DAY_6;
+
+enum ArithmeticOperation {
+    Sum,
+    Prod,
+}
+struct HomeworkProblem {
+    numbers: Vec<i64>,
+    operation: ArithmeticOperation,
+}
+fn try_collect<T, E>(iterator: impl Iterator<Item = Result<T, E>>) -> Result<Vec<T>, E> {
+    let mut return_vec = Vec::with_capacity(iterator.size_hint().0);
+    for item in iterator {
+        match item {
+            Ok(val) => return_vec.push(val),
+            Err(err) => return Err(err),
+        }
+    }
+    Ok(return_vec)
+}
+
+impl HomeworkProblem {
+    fn execute(&self) -> i64 {
+        let lambda_op = match self.operation {
+            ArithmeticOperation::Sum => |a: i64, b: &i64| a + b,
+            ArithmeticOperation::Prod => |a: i64, b: &i64| a * b,
+        };
+        let initializer = match self.operation {
+            ArithmeticOperation::Sum => 0,
+            ArithmeticOperation::Prod => 1,
+        };
+
+        self.numbers.iter().fold(initializer, lambda_op)
+    }
+
+    fn parse(inputs: &[impl Deref<Target = str>]) -> Result<Self, &'static str> {
+        let operation_str = &**inputs.last().ok_or("inputs was empty")?;
+        let operation = match operation_str {
+            "*" => ArithmeticOperation::Prod,
+            "+" => ArithmeticOperation::Sum,
+            _ => return Err("last item did not match a valid arithmetic operation"),
+        };
+        let numbers_iter = inputs[..inputs.len() - 1].iter().map(|v| v.parse::<i64>());
+        let return_numbers = try_collect(numbers_iter);
+        return_numbers
+            .map(|numbers| HomeworkProblem { operation, numbers })
+            .map_err(|e| "Integer could not be parsed")
+    }
+}
 
 fn check_if_row_is_well_formed<T>(
     input: impl Iterator<Item = Option<T>>,
@@ -21,7 +71,7 @@ fn check_if_row_is_well_formed<T>(
     }
 }
 
-fn parse_from_main_string(raw: &str) -> Vec<Vec<&str>> {
+fn parse_problem_1_form(raw: &str) -> Vec<Vec<&str>> {
     fn construct_line_iter<'a>(line_str: &'a str) -> std::str::SplitWhitespace<'a> {
         line_str.split_whitespace()
     }
@@ -37,4 +87,37 @@ fn parse_from_main_string(raw: &str) -> Vec<Vec<&str>> {
     instruction_lists
 }
 
-fn main() {}
+fn parse_problem_2_form(raw: &str) -> Vec<Vec<String>> {
+    let mut lines_vec: Vec<_> = raw.lines().collect();
+    let operations_row = lines_vec.pop().unwrap().split_whitespace();
+    let iters_mut: Vec<_> = lines_vec.into_iter().map(|v| v.chars()).collect();
+    let mut outputs = Vec::new();
+    loop {
+        let chars = iters_mut.iter_mut().map(|val| c);
+        break;
+    }
+    outputs
+}
+
+fn execute_task_1(input: &str) -> i64 {
+    let parsed_out_lines = parse_problem_1_form(input);
+    let parsed_problems_iter = parsed_out_lines.into_iter().map(|instructs| {
+        HomeworkProblem::parse(&instructs).ok_or("this should parse successfully")
+    });
+    let problems = try_collect(parsed_problems_iter).unwrap();
+    let result = problems
+        .iter()
+        .map(|prob| prob.execute())
+        .fold(0, |a, b| a + b);
+    result
+}
+
+pub const EXAMPLE_INPUT: &str = "123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314
+*   +   *   + ";
+
+fn main() {
+    assert_eq!(execute_task_1(EXAMPLE_INPUT), 4277556);
+    println!("Output 1: {}", execute_task_1(ADVENT_INPUT_DAY_6));
+}
